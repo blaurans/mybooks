@@ -1,9 +1,10 @@
+mod auth;
 mod config;
 mod db;
 mod error;
 mod handlers;
+mod middleware;
 mod models;
-
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing_subscriber::EnvFilter;

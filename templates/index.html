@@ -2,11 +2,12 @@
 {% block title %}Accueil — MyBooks{% endblock %}
 {% block content %}
   <div class="card">
+    <p>Bonjour <strong>{{ user_name }}</strong>.</p>
     <p>Ma bibliothèque contient <strong>{{ books_count }}</strong> livre(s).</p>
     <p>
       <a href="/books/new">Ajouter un livre</a> ·
       <a href="/scan">Scanner un code-barres</a> ·
-      <a href="/auth/login">Connexion</a>
+      <a href="/auth/logout">Déconnexion</a>
     </p>
   </div>
 {% endblock %}
