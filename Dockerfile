@@ -9,6 +9,9 @@ RUN touch src/main.rs
 RUN cargo build --release
 
 FROM debian:bookworm-slim
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y libssl3 \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 WORKDIR /app
 COPY --from=builder /app/target/release/mybooks /app/mybooks
