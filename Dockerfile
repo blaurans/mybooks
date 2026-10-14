@@ -5,6 +5,7 @@ COPY Cargo.toml ./
 RUN mkdir -p src && echo "fn main(){}" > src/main.rs
 RUN cargo build --release 2>/dev/null || true
 COPY . .
+RUN touch src/main.rs
 RUN cargo build --release
 
 FROM debian:bookworm-slim
