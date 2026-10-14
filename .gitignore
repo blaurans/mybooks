@@ -1,0 +1,7 @@
+/target
+/data
+*.db
+*.db-*
+.env
+Caddyfile? 
+.DS_Store
