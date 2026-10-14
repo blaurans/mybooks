@@ -23,6 +23,10 @@ async fn main() -> anyhow::Result<()> {
     let cfg = Config::from_env();
     let pool = connect(&cfg.database_url).await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
+    // Rebuild FTS index for external-content table (safe, fast for small DBs).
+    let _ = sqlx::query("INSERT INTO books_fts(books_fts) VALUES('rebuild')")
+        .execute(&pool)
+        .await;
 
     let app = handlers::router(pool.clone(), cfg.clone())
         .nest_service("/static", ServeDir::new("static"));

@@ -21,6 +21,7 @@ struct LibraryTemplate {
     books: Vec<BookCard>,
     q: String,
     status: String,
+    tag: String,
 }
 
 #[derive(Template)]
@@ -48,6 +49,7 @@ pub struct BookDetailTemplate {
 pub struct LibraryQuery {
     pub q: Option<String>,
     pub status: Option<String>,
+    pub tag: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -96,7 +98,8 @@ pub async fn library(
 async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Response {
     let qstr = q.q.clone().unwrap_or_default();
     let status = q.status.clone().unwrap_or_default();
-    let books = list_user_books(&state.pool, &user.id, &qstr, &status)
+    let tag = q.tag.clone().unwrap_or_default();
+    let books = list_user_books(&state.pool, &user.id, &qstr, &status, &tag)
         .await
         .unwrap_or_default();
     TemplateResponse::into_response(LibraryTemplate {
@@ -104,6 +107,7 @@ async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Re
         books,
         q: qstr,
         status,
+        tag,
     })
 }
 

@@ -12,6 +12,7 @@
         <option value="read" {% if status == "read" %}selected{% endif %}>Lu</option>
         <option value="dropped" {% if status == "dropped" %}selected{% endif %}>Abandonné</option>
       </select>
+      <input type="text" name="tag" value="{{ tag }}" placeholder="Tag (ex. sci-fi)"/>
       <button type="submit">Filtrer</button>
     </form>
     <p><a href="/books/new">+ Ajouter un livre</a></p>

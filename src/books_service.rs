@@ -44,6 +44,12 @@ pub struct UserBookDetail {
     pub tags: Vec<String>,
 }
 
+pub async fn rebuild_fts(pool: &sqlx::SqlitePool) {
+    let _ = sqlx::query("INSERT INTO books_fts(books_fts) VALUES('rebuild')")
+        .execute(pool)
+        .await;
+}
+
 pub fn normalize_isbn(input: &str) -> String {
     input
         .chars()
@@ -149,7 +155,10 @@ pub async fn create_book(pool: &sqlx::SqlitePool, m: &BookMeta) -> Result<String
     .execute(pool)
     .await;
     match res {
-        Ok(_) => Ok(id),
+        Ok(_) => {
+            rebuild_fts(pool).await;
+            Ok(id)
+        }
         Err(e) => {
             // possibly unique constraint on isbn -> fetch existing
             if let Some(isbn) = isbn {
@@ -196,20 +205,86 @@ pub async fn list_user_books(
     user_id: &str,
     q: &str,
     status: &str,
+    tag: &str,
+) -> Result<Vec<BookCard>, String> {
+    // Try FTS5 first; fall back to LIKE on invalid query or empty results.
+    match list_with_fts(pool, user_id, q, status, tag).await {
+        Ok(rows) => Ok(rows),
+        Err(_) => list_with_like(pool, user_id, q, status, tag).await,
+    }
+}
+
+async fn list_with_like(
+    pool: &sqlx::SqlitePool,
+    user_id: &str,
+    q: &str,
+    status: &str,
+    tag: &str,
 ) -> Result<Vec<BookCard>, String> {
     let like = format!("%{}%", q);
+    let taglike = format!("%{}%", tag);
     let rows = sqlx::query(
         "SELECT b.id, b.title, b.authors, b.cover_url, ub.status, ub.rating, ub.progress_pct
          FROM user_books ub JOIN books b ON b.id = ub.book_id
          WHERE ub.user_id = ?1
-           AND (?2 = '' OR b.title LIKE ?3 OR b.authors LIKE ?3)
+           AND (?2 = '' OR b.title LIKE ?3 OR b.authors LIKE ?3 OR COALESCE(ub.review,'') LIKE ?3)
            AND (?4 = '' OR ub.status = ?4)
+           AND (?5 = '' OR EXISTS (
+                SELECT 1 FROM user_book_tags t
+                WHERE t.user_id = ub.user_id AND t.book_id = ub.book_id AND t.tag LIKE ?6))
          ORDER BY ub.updated_at DESC",
     )
     .bind(user_id)
     .bind(q)
     .bind(&like)
     .bind(status)
+    .bind(tag)
+    .bind(&taglike)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    for r in rows {
+        out.push(BookCard {
+            id: r.get("id"),
+            title: r.get("title"),
+            authors: r.get("authors"),
+            cover_url: r.get("cover_url"),
+            status: r.get("status"),
+            rating: r.get("rating"),
+            progress_pct: r.get("progress_pct"),
+        });
+    }
+    Ok(out)
+}
+
+async fn list_with_fts(
+    pool: &sqlx::SqlitePool,
+    user_id: &str,
+    q: &str,
+    status: &str,
+    tag: &str,
+) -> Result<Vec<BookCard>, String> {
+    let taglike = format!("%{}%", tag);
+    if q.trim().is_empty() {
+        return list_with_like(pool, user_id, q, status, tag).await;
+    }
+    let rows = sqlx::query(
+        "SELECT b.id, b.title, b.authors, b.cover_url, ub.status, ub.rating, ub.progress_pct
+         FROM user_books ub JOIN books b ON b.id = ub.book_id
+         WHERE ub.user_id = ?1
+           AND b.rowid IN (SELECT rowid FROM books_fts WHERE books_fts MATCH ?2)
+           AND (?3 = '' OR ub.status = ?3)
+           AND (?4 = '' OR EXISTS (
+                SELECT 1 FROM user_book_tags t
+                WHERE t.user_id = ub.user_id AND t.book_id = ub.book_id AND t.tag LIKE ?5))
+         ORDER BY ub.updated_at DESC",
+    )
+    .bind(user_id)
+    .bind(q)
+    .bind(status)
+    .bind(tag)
+    .bind(&taglike)
     .fetch_all(pool)
     .await
     .map_err(|e| e.to_string())?;
