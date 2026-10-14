@@ -1,0 +1,14 @@
+FROM ubuntu:26.04
+
+# Runtime image that reuses a locally built binary (no Rust build inside Docker).
+# Use when the deploy host cannot reach crates.io during image build.
+WORKDIR /app
+COPY target/release/mybooks /app/mybooks
+COPY migrations /app/migrations
+RUN mkdir -p /app/static
+COPY static/ /app/static/
+
+ENV DATABASE_URL=sqlite:///data/mybooks.db
+ENV PORT=3000
+VOLUME ["/data"]
+CMD ["/app/mybooks"]
