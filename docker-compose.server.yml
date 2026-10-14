@@ -18,6 +18,7 @@ services:
     volumes:
       - mybooks_data:/data:ro
       - mybooks_backups:/backups
+    user: "0:0"
     command:
       - /bin/sh
       - -c
