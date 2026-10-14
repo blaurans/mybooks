@@ -207,18 +207,17 @@ pub async fn callback(
         Err(e) => return (StatusCode::BAD_GATEWAY, format!("userinfo parse: {}", e)).into_response(),
     };
 
-    // allowlist
-    if !cfg
-        .allowed_emails
-        .iter()
-        .any(|a| a.eq_ignore_ascii_case(&info.email))
-        && !cfg.allowed_emails.is_empty()
+    // allowlist: empty list means "allow all emails" (convenience mode)
+    if !cfg.allowed_emails.is_empty()
+        && !cfg
+            .allowed_emails
+            .iter()
+            .any(|a| a.eq_ignore_ascii_case(&info.email))
     {
-        // if allowlist configured and email not in it
         return (StatusCode::FORBIDDEN, "email non autorisé").into_response();
     }
     if cfg.allowed_emails.is_empty() {
-        return (StatusCode::FORBIDDEN, "ALLOWED_EMAILS vide — configure d'abord").into_response();
+        tracing::warn!("ALLOWED_EMAILS vide : inscription ouverte à tous les emails");
     }
 
     let role = if cfg
