@@ -41,9 +41,7 @@ pub struct GoalTemplate {
 #[derive(Template)]
 #[template(path = "book_new.html")]
 pub struct BookNewTemplate {
-    pub user_name: String,
     pub error: Option<String>,
-    pub isbn: Option<String>,
 }
 
 #[derive(Template)]
@@ -54,7 +52,6 @@ pub struct ScanTemplate {
 #[derive(Template)]
 #[template(path = "book_detail.html")]
 pub struct BookDetailTemplate {
-    pub user_name: String,
     pub book: UserBookDetail,
     pub rating_display: f64,
 }
@@ -137,13 +134,10 @@ async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Re
 }
 
 pub async fn new_book(
-    Extension(user): Extension<CurrentUser>,
     Query(q): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
     TemplateResponse::into_response(BookNewTemplate {
-        user_name: user.name,
         error: q.get("error").cloned(),
-        isbn: q.get("isbn").cloned(),
     })
 }
 
@@ -244,7 +238,6 @@ pub async fn detail(
         Ok(Some(book)) => {
             let rating_display = book.rating as f64 / 4.0;
             TemplateResponse::into_response(BookDetailTemplate {
-                user_name: user.name,
                 book,
                 rating_display,
             })

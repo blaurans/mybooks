@@ -5,7 +5,6 @@ use crate::config::Config;
 use crate::db::SqlitePool;
 use crate::middleware::auth_middleware;
 use axum::{
-    extract::State,
     middleware::from_fn_with_state,
     routing::{get, post},
     Router,

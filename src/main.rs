@@ -2,7 +2,6 @@ mod auth;
 mod books_service;
 mod config;
 mod db;
-mod error;
 mod handlers;
 mod middleware;
 mod models;

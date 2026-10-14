@@ -2,7 +2,7 @@ use crate::auth::CurrentUser;
 use crate::handlers::AppState;
 use axum::{
     extract::State,
-    http::{header, Request, StatusCode},
+    http::{header, Request},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };

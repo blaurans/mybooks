@@ -1,6 +1,4 @@
-use crate::handlers::AppState;
 use reqwest::Client;
-use serde::Deserialize;
 use sqlx::Row;
 
 pub struct BookMeta {
@@ -34,7 +32,6 @@ pub struct UserBookDetail {
     pub published_date: Option<String>,
     pub pages: Option<i64>,
     pub cover_url: Option<String>,
-    pub description: Option<String>,
     pub status: String,
     pub progress_pct: i64,
     pub current_page: Option<i64>,
@@ -341,8 +338,6 @@ pub async fn get_user_book(
         published_date: row.get("published_date"),
         pages: row.get("pages"),
         cover_url: row.get("cover_url"),
-        // description not stored; could fetch from books table later if column added
-        description: None,
         status: row.get("status"),
         progress_pct: row.get("progress_pct"),
         current_page: row.get("current_page"),

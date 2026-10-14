@@ -10,6 +10,7 @@ use sha2::{Digest, Sha256};
 use sqlx::Row;
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct CurrentUser {
     pub id: String,

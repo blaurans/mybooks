@@ -13,6 +13,15 @@ services:
     volumes:
       - mybooks_data:/data
 
+  backup:
+    image: alpine:3.20
+    restart: unless-stopped
+    volumes:
+      - mybooks_data:/data:ro
+      - mybooks_backups:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command: "apk add --no-cache sqlite >/dev/null && while true; do TS=$$(date +%Y%m%d-%H%M%S); sqlite3 /data/mybooks.db \".backup /backups/mybooks-$$TS.db\"; find /backups -name 'mybooks-*.db' -mtime +14 -delete; sleep 86400; done"
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -28,5 +37,6 @@ services:
 
 volumes:
   mybooks_data:
+  mybooks_backups:
   caddy_data:
   caddy_config:
