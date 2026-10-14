@@ -1,8 +1,8 @@
 services:
+  # Deployment variant for ociub: use the locally built arm64 image (built with
+  # docker buildx because the server cannot reach crates.io during image builds).
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.binary
+    image: mybooks:arm64
     restart: unless-stopped
     env_file: .env
     environment:
