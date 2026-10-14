@@ -32,6 +32,11 @@ pub struct BookNewTemplate {
 }
 
 #[derive(Template)]
+#[template(path = "scan.html")]
+pub struct ScanTemplate {
+    pub user_name: String,
+}
+#[derive(Template)]
 #[template(path = "book_detail.html")]
 pub struct BookDetailTemplate {
     pub user_name: String,
@@ -110,6 +115,12 @@ pub async fn new_book(
         user_name: user.name,
         error: q.get("error").cloned(),
         isbn: q.get("isbn").cloned(),
+    })
+}
+
+pub async fn scan(Extension(user): Extension<CurrentUser>) -> impl IntoResponse {
+    TemplateResponse::into_response(ScanTemplate {
+        user_name: user.name,
     })
 }
 
