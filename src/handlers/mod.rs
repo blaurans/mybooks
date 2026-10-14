@@ -35,6 +35,8 @@ pub fn router(pool: SqlitePool, cfg: Config) -> Router {
         .route("/books/:id", post(crate::handlers::books::update))
         .route("/books/:id/delete", post(crate::handlers::books::delete))
         .route("/scan", get(crate::handlers::books::scan))
+        .route("/goals", get(crate::handlers::books::goals))
+        .route("/goals", post(crate::handlers::books::set_goal_handler))
         .route("/api/isbn/:isbn", get(crate::handlers::books::lookup_api))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 

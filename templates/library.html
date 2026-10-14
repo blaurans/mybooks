@@ -3,6 +3,7 @@
 {% block content %}
   <div class="card">
     <p>Bonjour <strong>{{ user_name }}</strong>.</p>
+    <p>Objectif {{ goal_year }} : <strong>{{ goal_read }} / {{ goal_target }}</strong> livre(s) lu(s). <a href="/goals">Gérer l'objectif</a></p>
     <form method="get" action="/" hx-get="/" hx-target="body" style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
       <input type="text" name="q" value="{{ q }}" placeholder="Rechercher titre/auteur…"/>
       <select name="status">

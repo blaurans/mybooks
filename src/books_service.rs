@@ -417,3 +417,47 @@ pub async fn update_user_book(
     }
     Ok(())
 }
+
+pub fn current_year() -> i32 {
+    chrono::Utc::now().format("%Y").to_string().parse().unwrap_or(2026)
+}
+
+pub async fn get_goal(pool: &sqlx::SqlitePool, user_id: &str, year: i32) -> Result<i64, String> {
+    let row = sqlx::query("SELECT target_books FROM reading_goals WHERE user_id=?1 AND year=?2")
+        .bind(user_id)
+        .bind(year)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(row.map(|r| r.get::<i64, _>("target_books")).unwrap_or(0))
+}
+
+pub async fn set_goal(pool: &sqlx::SqlitePool, user_id: &str, year: i32, target: i64) -> Result<(), String> {
+    sqlx::query(
+        "INSERT INTO reading_goals (user_id, year, target_books) VALUES (?1, ?2, ?3)
+         ON CONFLICT(user_id, year) DO UPDATE SET target_books = excluded.target_books",
+    )
+    .bind(user_id)
+    .bind(year)
+    .bind(target)
+    .execute(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub async fn count_read_this_year(pool: &sqlx::SqlitePool, user_id: &str, year: i32) -> Result<i64, String> {
+    let y = year.to_string();
+    let prefix = format!("{}%", y);
+    let row = sqlx::query(
+        "SELECT COUNT(*) AS c FROM user_books
+         WHERE user_id = ?1 AND status = 'read'
+           AND COALESCE(finished_at, created_at) LIKE ?2",
+    )
+    .bind(user_id)
+    .bind(&prefix)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    Ok(row.get::<i64, _>("c"))
+}

@@ -1,7 +1,8 @@
 use crate::auth::CurrentUser;
 use crate::books_service::{
-    create_book, fetch_openlibrary, find_book_by_isbn, get_user_book, link_user_book, list_user_books,
-    normalize_isbn, remove_user_book, update_user_book, BookCard, BookMeta, UserBookDetail,
+    count_read_this_year, create_book, current_year, fetch_openlibrary, find_book_by_isbn, get_goal,
+    get_user_book, link_user_book, list_user_books, normalize_isbn, remove_user_book, set_goal,
+    update_user_book, BookCard, BookMeta, UserBookDetail,
 };
 use crate::handlers::AppState;
 use askama::Template;
@@ -22,6 +23,19 @@ struct LibraryTemplate {
     q: String,
     status: String,
     tag: String,
+    goal_year: i32,
+    goal_target: i64,
+    goal_read: i64,
+}
+
+#[derive(Template)]
+#[template(path = "goals.html")]
+pub struct GoalTemplate {
+    pub user_name: String,
+    pub year: i32,
+    pub target: i64,
+    pub read: i64,
+    pub message: Option<String>,
 }
 
 #[derive(Template)]
@@ -69,6 +83,11 @@ pub struct ManualForm {
 }
 
 #[derive(Deserialize)]
+pub struct GoalForm {
+    pub target_books: String,
+}
+
+#[derive(Deserialize)]
 pub struct UpdateForm {
     pub status: String,
     pub progress_pct: Option<String>,
@@ -99,6 +118,9 @@ async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Re
     let qstr = q.q.clone().unwrap_or_default();
     let status = q.status.clone().unwrap_or_default();
     let tag = q.tag.clone().unwrap_or_default();
+    let year = current_year();
+    let goal_target = get_goal(&state.pool, &user.id, year).await.unwrap_or(0);
+    let goal_read = count_read_this_year(&state.pool, &user.id, year).await.unwrap_or(0);
     let books = list_user_books(&state.pool, &user.id, &qstr, &status, &tag)
         .await
         .unwrap_or_default();
@@ -108,6 +130,9 @@ async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Re
         q: qstr,
         status,
         tag,
+        goal_year: year,
+        goal_target,
+        goal_read,
     })
 }
 
@@ -330,4 +355,32 @@ fn urlencoding(s: &str) -> String {
         }
     }
     out
+}
+
+pub async fn goals(
+    State(state): State<AppState>,
+    Extension(user): Extension<CurrentUser>,
+    Query(q): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let year = current_year();
+    let target = get_goal(&state.pool, &user.id, year).await.unwrap_or(0);
+    let read = count_read_this_year(&state.pool, &user.id, year).await.unwrap_or(0);
+    TemplateResponse::into_response(GoalTemplate {
+        user_name: user.name,
+        year,
+        target,
+        read,
+        message: q.get("msg").cloned(),
+    })
+}
+
+pub async fn set_goal_handler(
+    State(state): State<AppState>,
+    Extension(user): Extension<CurrentUser>,
+    Form(f): Form<GoalForm>,
+) -> Response {
+    let year = current_year();
+    let target: i64 = f.target_books.trim().parse().unwrap_or(0).max(0);
+    let _ = set_goal(&state.pool, &user.id, year, target).await;
+    Redirect::to("/goals?msg=Objectif+mis+%C3%A0+jour").into_response()
 }
