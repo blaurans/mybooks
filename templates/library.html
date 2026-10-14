@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Ma bibliothèque — MyBooks{% endblock %}
+{% block content %}
+  <div class="card">
+    <p>Bonjour <strong>{{ user_name }}</strong>.</p>
+    <form method="get" action="/" hx-get="/" hx-target="body" style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher titre/auteur…"/>
+      <select name="status">
+        <option value="" {% if status == "" %}selected{% endif %}>Tous</option>
+        <option value="to_read" {% if status == "to_read" %}selected{% endif %}>À lire</option>
+        <option value="reading" {% if status == "reading" %}selected{% endif %}>En cours</option>
+        <option value="read" {% if status == "read" %}selected{% endif %}>Lu</option>
+        <option value="dropped" {% if status == "dropped" %}selected{% endif %}>Abandonné</option>
+      </select>
+      <button type="submit">Filtrer</button>
+    </form>
+    <p><a href="/books/new">+ Ajouter un livre</a></p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:1rem;">
+  {% for b in books %}
+    <div class="card" style="text-align:center;">
+      {% if let Some(u) = b.cover_url %}<img src="{{ u }}" alt="" style="max-width:100%; height:200px; object-fit:cover;"/>{% endif %}
+      <h3 style="font-size:1rem; margin:.5rem 0 .25rem;">{{ b.title }}</h3>
+      <p style="font-size:.85rem; color:#555;">{{ b.authors }}</p>
+      <p style="font-size:.8rem;">{{ b.status }} · {{ b.progress_pct }}% · {{ b.rating }} quarts</p>
+      <a href="/books/{{ b.id }}">Ouvrir</a>
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}

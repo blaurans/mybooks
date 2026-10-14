@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Livre — MyBooks{% endblock %}
+{% block content %}
+  <div class="card" style="display:flex; gap:1rem; flex-wrap:wrap;">
+    {% if let Some(u) = book.cover_url %}<img src="{{ u }}" alt="" style="max-width:160px;"/>{% endif %}
+    <div>
+      <h2>{{ book.title }}</h2>
+      <p>{{ book.authors }}</p>
+      {% if let Some(x) = book.isbn %}<p><strong>ISBN</strong> {{ x }}</p>{% endif %}
+      {% if let Some(x) = book.publisher %}<p><strong>Éditeur</strong> {{ x }}</p>{% endif %}
+      {% if let Some(x) = book.published_date %}<p><strong>Publication</strong> {{ x }}</p>{% endif %}
+      {% if let Some(x) = book.pages %}<p><strong>Pages</strong> {{ x }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Ma lecture</h3>
+    <form method="post" action="/books/{{ book.book_id }}">
+      <p>
+        <label>Statut<br/>
+        <select name="status">
+          <option value="to_read" {% if book.status == "to_read" %}selected{% endif %}>À lire</option>
+          <option value="reading" {% if book.status == "reading" %}selected{% endif %}>En cours</option>
+          <option value="read" {% if book.status == "read" %}selected{% endif %}>Lu</option>
+          <option value="dropped" {% if book.status == "dropped" %}selected{% endif %}>Abandonné</option>
+        </select></label>
+      </p>
+      <p><label>Progression (%)<br/><input type="number" name="progress_pct" min="0" max="100" value="{{ book.progress_pct }}"/></label></p>
+      <p><label>Page actuelle<br/><input type="number" name="current_page" min="1" {% if let Some(p) = book.current_page %}value="{{ p }}"{% endif %}/></label></p>
+      <p><label>Note (0 à 5, pas 0,25)<br/><input type="number" name="rating" step="0.25" min="0" max="5" value="{{ rating_display }}"/></label></p>
+      <p><label>Avis<br/><textarea name="review" rows="4" cols="50">{% if let Some(r) = book.review %}{{ r }}{% endif %}</textarea></label></p>
+      <p><label>Visibilité de l'avis<br/>
+        <select name="review_visibility">
+          <option value="private" {% if book.review_visibility == "private" %}selected{% endif %}>Privé</option>
+          <option value="family" {% if book.review_visibility == "family" %}selected{% endif %}>Famille</option>
+        </select></label></p>
+      <p><label>Tags (virgules)<br/><input type="text" name="tags" value="{% for t in book.tags %}{{ t }}{% if !loop.last %}, {% endif %}{% endfor %}"/></label></p>
+      <button type="submit">Enregistrer</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <form method="post" action="/books/{{ book.book_id }}/delete" onsubmit="return confirm('Retirer ce livre de ta bibliothèque ?');">
+      <button type="submit">Retirer de ma bibliothèque</button>
+    </form>
+    <p><a href="/">← Retour à la bibliothèque</a></p>
+  </div>
+{% endblock %}
