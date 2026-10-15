@@ -68,8 +68,12 @@
 
     async function start() {
       if (scanning) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = 'Caméra non disponible sur ce navigateur.';
+        return;
+      }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
         video.srcObject = stream;
         await video.play();
         scanning = true;
@@ -97,10 +101,15 @@
         requestAnimationFrame(runLoop);
       } else {
         try {
-          await loadScript('https://unpkg.com/@zxing/browser@latest');
-          const reader = new ZXing.BrowserMultiFormatReader();
+          await loadScript('/static/vendor/zxing-browser.js');
+          const ZX = window.ZXingBrowser;
+          if (!ZX || !ZX.BrowserMultiFormatReader) {
+            throw new Error('scanner indisponible');
+          }
+          const reader = new ZX.BrowserMultiFormatReader();
           const res = await reader.decodeOnceFromVideoDevice(undefined, video);
-          await handleCode(res && res.text ? res.text : String(res));
+          const text = res && res.text ? res.text : (res && res.getText ? res.getText() : String(res));
+          await handleCode(text);
         } catch (e) {
           status.textContent = 'Erreur de scan : ' + (e && e.message ? e.message : e);
           scanning = false;
