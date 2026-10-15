@@ -26,6 +26,7 @@ struct LibraryTemplate {
     goal_year: i32,
     goal_target: i64,
     goal_read: i64,
+    is_admin: bool,
 }
 
 #[derive(Template)]
@@ -130,6 +131,7 @@ async fn library_with(state: AppState, user: CurrentUser, q: LibraryQuery) -> Re
         goal_year: year,
         goal_target,
         goal_read,
+        is_admin: user.role == "admin",
     })
 }
 

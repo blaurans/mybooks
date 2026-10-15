@@ -16,7 +16,7 @@
       <input type="text" name="tag" value="{{ tag }}" placeholder="Tag (ex. sci-fi)"/>
       <button type="submit">Filtrer</button>
     </form>
-    <p><a href="/books/new">+ Ajouter un livre</a> · <a href="/scan">Scanner un code-barres</a></p>
+    <p><a href="/books/new">+ Ajouter un livre</a> · <a href="/scan">Scanner un code-barres</a>{% if is_admin %} · <a href="/admin">Admin</a>{% endif %} · <a href="/auth/logout">Déconnexion</a></p>
   </div>
 
   <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:1rem;">

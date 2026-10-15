@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod books;
 pub mod health;
 
@@ -37,6 +38,10 @@ pub fn router(pool: SqlitePool, cfg: Config) -> Router {
         .route("/goals", get(crate::handlers::books::goals))
         .route("/goals", post(crate::handlers::books::set_goal_handler))
         .route("/api/isbn/:isbn", get(crate::handlers::books::lookup_api))
+        .route("/admin", get(crate::handlers::admin::index))
+        .route("/admin/users/:id", get(crate::handlers::admin::user_detail))
+        .route("/admin/users/:id/role", post(crate::handlers::admin::update_role))
+        .route("/admin/users/:id/delete", post(crate::handlers::admin::delete_user_handler))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
     Router::new()

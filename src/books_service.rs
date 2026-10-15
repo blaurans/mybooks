@@ -456,3 +456,88 @@ pub async fn count_read_this_year(pool: &sqlx::SqlitePool, user_id: &str, year: 
     .map_err(|e| e.to_string())?;
     Ok(row.get::<i64, _>("c"))
 }
+
+pub struct AdminUserRow {
+    pub id: String,
+    pub email: String,
+    pub name: String,
+    pub role: String,
+    pub book_count: i64,
+}
+
+pub async fn list_users_for_admin(pool: &sqlx::SqlitePool) -> Result<Vec<AdminUserRow>, String> {
+    let rows = sqlx::query(
+        "SELECT u.id, u.email, u.name, u.role,
+                (SELECT COUNT(*) FROM user_books ub WHERE ub.user_id = u.id) AS book_count
+         FROM users u
+         ORDER BY u.created_at DESC",
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    for r in rows {
+        out.push(AdminUserRow {
+            id: r.get("id"),
+            email: r.get("email"),
+            name: r.get("name"),
+            role: r.get("role"),
+            book_count: r.get("book_count"),
+        });
+    }
+    Ok(out)
+}
+
+pub async fn set_user_role(
+    pool: &sqlx::SqlitePool,
+    user_id: &str,
+    role: &str,
+) -> Result<bool, String> {
+    if role != "admin" && role != "member" {
+        return Err("rôle invalide".to_string());
+    }
+    if role == "member" {
+        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE role = 'admin'")
+            .fetch_one(pool)
+            .await
+            .map_err(|e| e.to_string())?;
+        if count <= 1 {
+            return Ok(false);
+        }
+    }
+    let res = sqlx::query("UPDATE users SET role = ?1, updated_at = datetime('now') WHERE id = ?2")
+        .bind(role)
+        .bind(user_id)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(res.rows_affected() > 0)
+}
+
+pub async fn delete_user(pool: &sqlx::SqlitePool, user_id: &str) -> Result<bool, String> {
+    // Prevent removing the last admin (avoid lockout).
+    let target_role: String = sqlx::query_scalar("SELECT role FROM users WHERE id = ?1")
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| e.to_string())?
+        .unwrap_or_default();
+    if target_role.is_empty() {
+        return Ok(false);
+    }
+    if target_role == "admin" {
+        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE role = 'admin'")
+            .fetch_one(pool)
+            .await
+            .map_err(|e| e.to_string())?;
+        if count <= 1 {
+            return Ok(false);
+        }
+    }
+    sqlx::query("DELETE FROM users WHERE id = ?1")
+        .bind(user_id)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(true)
+}

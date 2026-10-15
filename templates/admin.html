@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Administration — MyBooks{% endblock %}
+{% block content %}
+  <div class="card">
+    <p>Bonjour <strong>{{ user_name }}</strong>.</p>
+    {% if let Some(m) = message %}<p style="color: var(--success);">{{ m }}</p>{% endif %}
+    {% if let Some(e) = error %}<p style="color: var(--danger);">{{ e }}</p>{% endif %}
+    <h2>Utilisateurs</h2>
+    {% for u in users %}
+      <div class="card">
+        <p>
+          <strong>{{ u.email }}</strong><br/>
+          {{ u.name }} · rôle : <strong>{{ u.role }}</strong> · {{ u.book_count }} livre(s)
+        </p>
+        <p>
+          <a href="/admin/users/{{ u.id }}">Voir la bibliothèque</a>
+        </p>
+        <form method="post" action="/admin/users/{{ u.id }}/role">
+          <select name="role">
+            <option value="member" {% if u.role == "member" %}selected{% endif %}>member</option>
+            <option value="admin" {% if u.role == "admin" %}selected{% endif %}>admin</option>
+          </select>
+          <button type="submit">Mettre à jour</button>
+        </form>
+        <form method="post" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Supprimer cet utilisateur et ses données ?');" style="margin-top:.5rem;">
+          <button type="submit">Supprimer</button>
+        </form>
+      </div>
+    {% endfor %}
+    <p><a href="/">← Bibliothèque</a></p>
+  </div>
+{% endblock %}

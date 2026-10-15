@@ -221,7 +221,7 @@ pub async fn callback(
         tracing::warn!("ALLOWED_EMAILS vide : inscription ouverte à tous les emails");
     }
 
-    let role = if cfg
+    let mut role = if cfg
         .admin_emails
         .iter()
         .any(|a| a.eq_ignore_ascii_case(&info.email))
@@ -230,6 +230,16 @@ pub async fn callback(
     } else {
         "member"
     };
+    // Bootstrap: the first user in an empty DB becomes admin.
+    if role != "admin" {
+        let admin_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE role = 'admin'")
+            .fetch_one(&state.pool)
+            .await
+            .unwrap_or(0);
+        if admin_count == 0 {
+            role = "admin";
+        }
+    }
     let name = info.name.clone().unwrap_or_else(|| info.email.clone());
 
     // upsert user

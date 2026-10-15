@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Admin — {{ target_email }} — MyBooks{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ target_name }}</h2>
+    <p>Vue de l’admin : {{ user_name }}.</p>
+    <p>{{ target_email }}</p>
+    <p><strong>{{ book_count }}</strong> livre(s) dans la bibliothèque.</p>
+    <p style="font-size:.85rem; color: var(--muted);">Les avis et notes privés ne sont pas affichés.</p>
+    <p><a href="/admin">← Administration</a></p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:1rem;">
+  {% for b in books %}
+    <div class="card" style="text-align:center;">
+      {% if let Some(u) = b.cover_url %}<img src="{{ u }}" alt="" style="max-width:100%; height:200px; object-fit:cover;"/>{% endif %}
+      <h3 style="font-size:1rem; margin:.5rem 0 .25rem;">{{ b.title }}</h3>
+      <p style="font-size:.85rem; color:#555;">{{ b.authors }}</p>
+      <p style="font-size:.8rem;">{{ b.status }} · {{ b.progress_pct }}% · {{ b.rating }} quarts</p>
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}
