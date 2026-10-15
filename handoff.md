@@ -12,6 +12,7 @@ Branch: main
 - Découpage utilisateur + tables books globaux; dédup ISBN.
 - Recherche FTS5 + fallback LIKE.
 - Objectif annuel par utilisateur.
+- Mode admin : gestion utilisateurs, vue des bibliothèques, avis/notes privés masqués.
 - Mode sombre/clair + persistance localStorage et préférence système.
 - Backup SQLite quotidien rétention 14j (conteneur keinos/sqlite3).
 - Hébergement ociub arm64, Caddy partagé guacamole.
@@ -48,6 +49,8 @@ Branch: main
 - Backup initial créé dans `mybooks_mybooks_backups`.
 - Mode sombre : page rendue avec CSS variables + toggle (test local HTML, image ARM64 déployée).
 - Scan fallback iPad : vendor ZXing servi en local (HTTP 200, 441 Ko).
+- Admin : routes `/admin` testées (admin 200, member 403), promotion/démotion OK.
+- Prod : `blaurans@gmail.com` promu admin en base.
 
 ## Secrets / ne pas committer
 - `.env` sur ociub contient GOOGLE_CLIENT_ID/SECRET et Allowed/Admin (actuellement vide).

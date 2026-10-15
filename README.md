@@ -47,3 +47,4 @@ docker exec guacamole-caddy-1 caddy reload --config /etc/caddy/Caddyfile
 - [x] Objectif annuel de lecture
 - [x] Recherche FTS5
 - [x] Backup SQLite automatisé
+- [x] Mode admin (utilisateurs + bibliothèques, notes privées masquées)
