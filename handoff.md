@@ -27,6 +27,8 @@ Branch: main
 - README.md, handoff.md
 
 ## Problèmes / contraintes trouvées
+- Safari/iPad ne fournit pas toujours `BarcodeDetector` : fallback ZXing maintenant servi localement (`static/vendor/zxing-browser.js`).
+- L’entrée `/scan` était peu visible : lien ajouté depuis bibliothèque et page ajout.
 - Serveur ociub est `aarch64`; compiler localement en x86_64 ne marche pas.
 - Builder Docker du serveur n’a pas accès à `crates.io`/debian lors des builds.
 - Solution actuelle : build local `docker buildx --platform linux/arm64`, puis `docker save | ssh ociub docker load`.
@@ -45,6 +47,7 @@ Branch: main
 - OpenLibrary accessible depuis le réseau container (HTTP 200).
 - Backup initial créé dans `mybooks_mybooks_backups`.
 - Mode sombre : page rendue avec CSS variables + toggle (test local HTML, image ARM64 déployée).
+- Scan fallback iPad : vendor ZXing servi en local (HTTP 200, 441 Ko).
 
 ## Secrets / ne pas committer
 - `.env` sur ociub contient GOOGLE_CLIENT_ID/SECRET et Allowed/Admin (actuellement vide).
