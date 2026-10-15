@@ -5,19 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>{% block title %}MyBooks{% endblock %}</title>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        if (stored !== 'light' && stored !== 'dark') {
+          stored = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', stored);
+      } catch (e) {}
+    })();
+  </script>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; color: #1f2937; }
+    :root {
+      --bg: #ffffff;
+      --fg: #1f2937;
+      --muted: #6b7280;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-fg: #ffffff;
+      --input-bg: #ffffff;
+      --input-fg: #1f2937;
+      --danger: #b91c1c;
+      --success: #16a34a;
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #94a3b8;
+      --card-bg: #111827;
+      --border: #334155;
+      --accent: #60a5fa;
+      --accent-fg: #0b1220;
+      --input-bg: #0b1220;
+      --input-fg: #e5e7eb;
+      --danger: #f87171;
+      --success: #4ade80;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: var(--fg); background: var(--bg); }
     h1 { margin-top: 0; }
-    a { color: #2563eb; }
-    .card { padding: 1rem; border: 1px solid #e5e7eb; border-radius: .5rem; margin-bottom: 1rem; }
+    a { color: var(--accent); }
+    .card { background: var(--card-bg); color: var(--fg); padding: 1rem; border: 1px solid var(--border); border-radius: .5rem; margin-bottom: 1rem; }
+
+    input, select, textarea, button {
+      font: inherit;
+      padding: .375rem .5rem;
+      border: 1px solid var(--border);
+      border-radius: .375rem;
+      background: var(--input-bg);
+      color: var(--input-fg);
+    }
+
+    button {
+      background: var(--accent);
+      color: var(--accent-fg);
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+
+    button[type="submit"] { min-height: 2.2rem; }
+    input[type="number"] { width: 7rem; }
+    textarea { background: var(--input-bg); color: var(--input-fg); }
+    img { max-width: 100%; height: auto; }
+    header { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    header h1 { margin-right: auto; }
   </style>
 </head>
 <body>
   <header>
     <h1><a href="/">MyBooks</a></h1>
+    <button id="theme-toggle" type="button" aria-pressed="false">Sombre</button>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
+  <script>
+    (function () {
+      var btn = document.getElementById('theme-toggle');
+      var root = document.documentElement;
+      function applyTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        btn.textContent = theme === 'dark' ? 'Clair' : 'Sombre';
+        btn.setAttribute('aria-pressed', theme === 'dark');
+        try { localStorage.setItem('theme', theme); } catch (e) {}
+      }
+      applyTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+      btn.addEventListener('click', function () {
+        applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
+    })();
+  </script>
 </body>
 </html>
