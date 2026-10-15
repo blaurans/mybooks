@@ -3,5 +3,5 @@
 *.db
 *.db-*
 .env
-Caddyfile? 
+newapp.md
 .DS_Store
